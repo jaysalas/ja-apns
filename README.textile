@@ -4,7 +4,7 @@ a gem for the Apple Push Notification Service.
 
 h2. Install
 
-sudo gem install apns
+sudo gem install ja-apns
 
 h2. Setup:
 
@@ -22,67 +22,52 @@ After you have your .pem file. Set what host, port, certificate file location on
 
 <pre>
   <code>
-    APNS.host = 'gateway.push.apple.com' 
-    # gateway.sandbox.push.apple.com is default
+    sender = APNS::Sender.new({
+      # gateway.sandbox.push.apple.com is default
+      host: 'gateway.push.apple.com',
+      # this is the file you just created
+      pem: '/path/to/pem/file',
+      # this is also the default. Shouldn't ever have to set this, but just in case Apple goes crazy, you can.
+      port: 2195 
+    })
+  </code>
+</pre>
 
-    APNS.pem  = '/path/to/pem/file'
-    # this is the file you just created
+h2. Example:
+
+You will need to create a notification class and provide the following instance methods: 
+<code>device_token</code>, <code>alert</code>, <code>badge</code>, <code>sound</code>, <code>other</code>, <code>valid?</code>
+
+<pre>
+  <code>
+    class MyNotification
+      def device_token
+        'your token'
+      end
+      alert
+        'Hello iPhone'
+      end
+      badge
+        1
+      end
+      sound
+        'default'
+      end
+      def other
+        {foo: 'bar'}
+      end
+      def valid?
+        true
+      end
+    end
+
+    sender = APNS::Sender.new
+
+    notification = MyNotification.new
     
-    APNS.port = 2195 
-    # this is also the default. Shouldn't ever have to set this, but just in case Apple goes crazy, you can.
+    sender.send_notifications([notification])
   </code>
 </pre>
-
-h2. Example (Single notification):
-
-Then to send a push notification you can either just send a string as the alert or give it a hash for the alert, badge and sound.
-
-<pre>
-  <code>
-    device_token = '123abc456def'
-
-    APNS.send_notification(device_token, 'Hello iPhone!' )
-
-    APNS.send_notification(device_token, :alert => 'Hello iPhone!', :badge => 1, :sound => 'default')
-  </code>
-</pre>
-
-h2. Example (Multiple notifications):
-
-You can also send multiple notifications using the same connection to Apple:
-
-<pre>
-  <code>
-    device_token = '123abc456def'
-
-    n1 = APNS::Notification.new(device_token, 'Hello iPhone!' )
-
-    n2 = APNS::Notification.new(device_token, :alert => 'Hello iPhone!', :badge => 1, :sound => 'default')
-    
-    APNS.send_notifications([n1, n2])
-  </code>
-</pre>
-
-
-h2. Send other info along with aps
-
-You can send other application specific information as well.
-
-<pre>
-  <code>
-    APNS.send_notification(device_token, :alert => 'Hello iPhone!', :badge => 1, :sound => 'default',
-                                         :other => {:sent => 'with apns gem'})
-  </code>
-</pre>
-
-This will add the other hash to the same level as the aps hash:
-
-<pre>
-  <code>
-    {"aps":{"alert":"Hello iPhone!","badge":1,"sound":"default"},"sent":"with apns gem"}
-  </code>
-</pre>
-
 
 h2. Getting your iPhone's device token
 
